@@ -18,4 +18,3 @@ while True:
             #for v in data['v']:                     #v='int 打招呼，哈喽‘’
             #print(v)
             print(data['v'])
-    

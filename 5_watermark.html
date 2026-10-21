@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>水印上传</title>
+</head>
+<body>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" name="file" accept="image/*">
+        <button type="submit">上传</button>
+    </form>
+
+    <div style="margin-top:20px">
+        <p>处理后的预览：</p>
+        <img id="preview" style="max-width:400px; border:1px solid #ccc; display:none;">
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();                       
+
+            if (!fileInput.files.length) {
+                alert('请先选择图片');
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('file', fileInput.files[0]);     // name 必须和后端 file 一致
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/upload', {
+                    method: 'POST',
+                    body: fd
+                });
+
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
+                // 关键：后端返回的是图片二进制，不是 JSON
+                const blob = await res.blob();
+
+                // 释放上一次的 URL，避免内存泄漏
+                if (preview.src) URL.revokeObjectURL(preview.src);
+
+                const url = URL.createObjectURL(blob);
+                preview.src = url;
+                preview.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                alert('上传失败: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>
